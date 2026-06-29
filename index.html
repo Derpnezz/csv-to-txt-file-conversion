@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CSV → TXT converter</title>
+  <!-- Font Awesome for icons (optional but nice) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: #f8faff;
+      font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+      padding: 2rem 1.5rem;
+      color: #1a2639;
+      display: flex;
+      justify-content: center;
+    }
+
+    .app-wrapper {
+      max-width: 1300px;
+      width: 100%;
+      background: white;
+      border-radius: 2rem;
+      box-shadow: 0 20px 40px -12px rgba(0,20,50,0.2);
+      padding: 2rem 2rem 2.5rem;
+      transition: 0.2s;
+    }
+
+    h1 {
+      font-weight: 500;
+      font-size: 2rem;
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      border-bottom: 2px solid #eef2f9;
+      padding-bottom: 1rem;
+      margin-bottom: 1.8rem;
+    }
+
+    h1 i {
+      color: #2a6df4;
+      font-size: 1.9rem;
+    }
+
+    .grid-2col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+
+    @media (max-width: 860px) {
+      .grid-2col {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+      }
+    }
+
+    .card {
+      background: #f9fcff;
+      border-radius: 1.2rem;
+      padding: 1.6rem 1.8rem;
+      border: 1px solid #e6edf8;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.02);
+      transition: 0.15s;
+    }
+
+    .card-title {
+      font-weight: 600;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 1.2rem;
+      color: #1f2b44;
+    }
+
+    .card-title i {
+      color: #2a6df4;
+      width: 1.4rem;
+    }
+
+    .upload-area {
+      border: 2px dashed #cbd9ed;
+      border-radius: 1.2rem;
+      padding: 2rem 1rem;
+      text-align: center;
+      background: #f2f7ff;
+      transition: 0.2s;
+      cursor: pointer;
+      margin-bottom: 1.6rem;
+    }
+
+    .upload-area:hover {
+      border-color: #2a6df4;
+      background: #eaf1fe;
+    }
+
+    .upload-area i {
+      font-size: 2.8rem;
+      color: #2a6df4;
+      opacity: 0.7;
+      margin-bottom: 0.4rem;
+    }
+
+    .upload-area p {
+      font-weight: 450;
+      color: #1f2b44;
+    }
+
+    .upload-area small {
+      display: block;
+      color: #4b5b7a;
+      margin-top: 0.3rem;
+    }
+
+    #fileInput {
+      display: none;
+    }
+
+    .param-group {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.8rem 1.2rem;
+      margin: 1.2rem 0 1.5rem;
+      background: #eef4fd;
+      padding: 0.8rem 1.2rem;
+      border-radius: 2.5rem;
+    }
+
+    .param-group label {
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: #1a2b4a;
+    }
+
+    .param-group input {
+      width: 90px;
+      padding: 0.4rem 0.6rem;
+      border: 1px solid #ccd9ef;
+      border-radius: 2rem;
+      background: white;
+      font-weight: 500;
+      text-align: center;
+    }
+
+    .param-group input:focus {
+      outline: 2px solid #2a6df4;
+      border-color: transparent;
+    }
+
+    .action-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+      margin-top: 0.4rem;
+    }
+
+    .btn {
+      background: white;
+      border: 1px solid #cdddf5;
+      padding: 0.6rem 1.4rem;
+      border-radius: 3rem;
+      font-weight: 500;
+      color: #1a2b4a;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      transition: 0.15s;
+      font-size: 0.95rem;
+      background: #f2f8ff;
+    }
+
+    .btn-primary {
+      background: #1f3a7a;
+      border: 1px solid #1f3a7a;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #142b5e;
+      border-color: #142b5e;
+    }
+
+    .btn-success {
+      background: #0f7b3a;
+      border: 1px solid #0f7b3a;
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #0b622e;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      pointer-events: none;
+      filter: grayscale(0.4);
+    }
+
+    .file-status {
+      font-size: 0.9rem;
+      background: #eaf1fe;
+      border-radius: 2rem;
+      padding: 0.2rem 1rem 0.2rem 1.2rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin: 0.2rem 0 0.8rem;
+    }
+
+    .file-status i {
+      color: #1f7b3a;
+    }
+
+    .preview-box {
+      background: #0f1a2e;
+      color: #e3eaf9;
+      border-radius: 1.2rem;
+      padding: 1.2rem 1.4rem;
+      font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+      font-size: 0.8rem;
+      line-height: 1.5;
+      max-height: 500px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      border: 1px solid #273955;
+      margin-top: 1rem;
+    }
+
+    .preview-box .placeholder {
+      color: #7b8aaa;
+      font-style: italic;
+    }
+
+    .preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.6rem;
+    }
+
+    .badge {
+      background: #1f3355;
+      color: #b8cbff;
+      border-radius: 3rem;
+      padding: 0.2rem 0.9rem;
+      font-size: 0.7rem;
+      font-weight: 500;
+    }
+
+    .stats-summary {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.2rem 2rem;
+      background: #eaf1fe;
+      padding: 0.8rem 1.2rem;
+      border-radius: 2.5rem;
+      margin-top: 0.8rem;
+      font-size: 0.9rem;
+    }
+
+    .stats-summary span {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .stats-summary i {
+      color: #1f3a7a;
+      width: 1.1rem;
+    }
+
+    .footer-note {
+      text-align: right;
+      margin-top: 1.2rem;
+      color: #48618a;
+      font-size: 0.8rem;
+      border-top: 1px solid #e4ebf8;
+      padding-top: 1.2rem;
+    }
+
+    .btn-download {
+      background: #0f7b3a;
+      border: none;
+      color: white;
+    }
+
+    .btn-download:hover {
+      background: #0b622e;
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+  </style>
+</head>
+<body>
+<div class="app-wrapper">
+  <h1>
+    <i class="fas fa-file-csv"></i> 
+    CSV → TXT converter
+    <span style="font-size: 0.9rem; font-weight: 400; margin-left: auto; color: #4b6a93;">
+      <!--<i class="fas fa-file"></i>-->
+    </span>
+  </h1>
+
+  <div class="grid-2col">
+    <!-- left: controls -->
+    <div>
+      <div class="card">
+        <div class="card-title"><i class="fas fa-cloud-upload-alt"></i> Upload &amp; configure</div>
+
+        <!-- upload -->
+        <div class="upload-area" id="uploadArea">
+          <i class="fas fa-file-import"></i>
+          <p><strong>Click to select</strong> or drag &amp; drop</p>
+          <small>single CSV file only</small>
+          <input type="file" id="fileInput" accept=".csv" />
+        </div>
+
+        <div id="fileStatus" class="file-status" style="display: none;">
+          <i class="fas fa-check-circle"></i> 
+          <span id="fileName">file.csv</span>
+          <span style="opacity:0.6; margin-left: auto; font-size:0.8rem;" id="fileSize"></span>
+        </div>
+
+        <!-- parameters -->
+        <div class="param-group">
+          <label><i class="fas fa-rows"></i> max_rows</label>
+          <input type="number" id="maxRowsInput" value="500" min="1" max="999999" />
+          <label style="margin-left: 0.2rem;"><i class="fas fa-arrows-alt-h"></i> delimiter</label>
+          <input type="text" id="delimiterInput" value="," maxlength="2" style="width: 60px;" />
+        </div>
+
+        <div class="action-buttons">
+          <button class="btn btn-primary" id="convertBtn"><i class="fas fa-play"></i> Convert</button>
+          <button class="btn" id="resetBtn"><i class="fas fa-undo-alt"></i> Reset</button>
+          <button class="btn btn-success" id="downloadBtn" disabled><i class="fas fa-download"></i> Download .txt</button>
+        </div>
+
+        <!-- stats mini -->
+        <div id="statsSummary" class="stats-summary" style="display: none;">
+          <span><i class="fas fa-table"></i> <span id="statRows">0</span> rows</span>
+          <span><i class="fas fa-columns"></i> <span id="statCols">0</span> cols</span>
+          <span><i class="fas fa-file-alt"></i> <span id="statTruncated">0</span> shown</span>
+        </div>
+
+        <div style="margin-top: 0.6rem; font-size: 0.85rem; color: #3a5780;">
+          <i class="fas fa-info-circle"></i> Preview shows first <strong id="previewLimitLabel">500</strong> rows. 
+          Stats based on full CSV.
+        </div>
+      </div>
+    </div>
+
+    <!-- right: preview -->
+    <div>
+      <div class="card" style="height: 100%; display: flex; flex-direction: column;">
+        <div class="preview-header">
+          <span class="card-title" style="margin-bottom: 0;"><i class="fas fa-eye"></i> Preview</span>
+          <span class="badge" id="previewBadge">TXT</span>
+        </div>
+        <div class="preview-box" id="previewBox">
+          <span class="placeholder">⏺ Upload a CSV and click <strong>Convert</strong> to see the formatted TXT preview.</span>
+        </div>
+        <div style="margin-top: 0.4rem; font-size: 0.7rem; color: #3f6290; display: flex; gap: 1.2rem;">
+          <span><i class="far fa-copy"></i> column statistics included</span>
+          <span><i class="far fa-clock"></i> auto‑formatted for AI</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer-note">
+    <i class="fas fa-code"></i> Created by Gabriel Yee
+  </div>
+</div>
+<script>
+  (function(){
+    "use strict";
+
+    // DOM elements
+    const fileInput = document.getElementById('fileInput');
+    const uploadArea = document.getElementById('uploadArea');
+    const fileStatus = document.getElementById('fileStatus');
+    const fileNameSpan = document.getElementById('fileName');
+    const fileSizeSpan = document.getElementById('fileSize');
+    const maxRowsInput = document.getElementById('maxRowsInput');
+    const delimiterInput = document.getElementById('delimiterInput');
+    const convertBtn = document.getElementById('convertBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const previewBox = document.getElementById('previewBox');
+    const statRows = document.getElementById('statRows');
+    const statCols = document.getElementById('statCols');
+    const statTruncated = document.getElementById('statTruncated');
+    const statsSummary = document.getElementById('statsSummary');
+    const previewLimitLabel = document.getElementById('previewLimitLabel');
+
+    // state
+    let currentFile = null;            // File object
+    let currentTxtContent = '';        // raw txt content (full)
+    let currentStats = null;           // { totalRows, totalCols, shownRows }
+
+    // --- helpers ---
+    function formatFileSize(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / 1048576).toFixed(1) + ' MB';
+    }
+
+    // reset UI
+    function resetAll() {
+      currentFile = null;
+      currentTxtContent = '';
+      currentStats = null;
+      fileInput.value = '';
+      fileStatus.style.display = 'none';
+      previewBox.innerHTML = `<span class="placeholder">⏺ Upload a CSV and click <strong>Convert</strong> to see the formatted TXT preview.</span>`;
+      statsSummary.style.display = 'none';
+      downloadBtn.disabled = true;
+      // keep maxRows / delimiter as they are
+    }
+
+    // parse CSV with delimiter & maxRows, return { headers, rows, fullRowsCount, stats }
+    function parseCSV(text, delimiter, maxRows) {
+      // split lines, handle quotes (simple)
+      const lines = text.split(/\r?\n/);
+      // find first non-empty line as header
+      let headerLine = null;
+      let dataStartIndex = 0;
+      for (let i = 0; i < lines.length; i++) {
+        if (lines[i].trim() !== '') {
+          headerLine = lines[i];
+          dataStartIndex = i + 1;
+          break;
+        }
+      }
+      if (!headerLine) {
+        throw new Error('CSV appears empty or no header row.');
+      }
+
+      // parse header (respect delimiter)
+      const headers = headerLine.split(delimiter).map(s => s.trim());
+      if (headers.length === 0) throw new Error('No columns found.');
+
+      // collect rows (up to maxRows)
+      const rows = [];
+      let fullRowsCount = 0;
+      for (let i = dataStartIndex; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (line === '') continue;
+        fullRowsCount++;
+        if (rows.length < maxRows) {
+          // split, but keep quoted fields naive (just split)
+          // For a robust solution we'd use a real CSV parser, but for demo we split
+          // This handles simple quoted fields but not complex embedded commas.
+          const parts = line.split(delimiter);
+          // trim each part
+          const rowObj = {};
+          headers.forEach((h, idx) => {
+            let val = (parts[idx] || '').trim();
+            // remove surrounding quotes if present
+            if (val.startsWith('"') && val.endsWith('"')) {
+              val = val.slice(1, -1);
+            } else if (val.startsWith("'") && val.endsWith("'")) {
+              val = val.slice(1, -1);
+            }
+            rowObj[h] = val;
+          });
+          rows.push(rowObj);
+        }
+      }
+
+      // column data for stats (all rows, not only displayed)
+      const columnData = {};
+      headers.forEach(h => columnData[h] = []);
+      // re-read all data rows (full) 
+      for (let i = dataStartIndex; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (line === '') continue;
+        const parts = line.split(delimiter);
+        headers.forEach((h, idx) => {
+          let val = (parts[idx] || '').trim();
+          if (val.startsWith('"') && val.endsWith('"')) val = val.slice(1, -1);
+          else if (val.startsWith("'") && val.endsWith("'")) val = val.slice(1, -1);
+          if (val !== '') columnData[h].push(val);
+        });
+      }
+
+      // analyze column statistics (simplified numeric detection)
+      function analyzeColumn(values) {
+        const numericValues = [];
+        for (const v of values) {
+          const num = parseFloat(v);
+          if (!isNaN(num) && v.trim() !== '') numericValues.push(num);
+        }
+        if (numericValues.length > 0) {
+          const sorted = [...numericValues].sort((a,b)=>a-b);
+          const mean = numericValues.reduce((s,v)=>s+v,0) / numericValues.length;
+          const median = sorted.length % 2 === 0 ? (sorted[sorted.length/2-1] + sorted[sorted.length/2])/2 : sorted[Math.floor(sorted.length/2)];
+          return {
+            type: 'numeric',
+            count: numericValues.length,
+            min: Math.min(...numericValues),
+            max: Math.max(...numericValues),
+            mean: mean,
+            median: median,
+            nonNumeric: values.length - numericValues.length,
+          };
+        } else {
+          const unique = [...new Set(values)];
+          return {
+            type: 'text',
+            count: values.length,
+            uniqueCount: unique.length,
+            sampleValues: unique.slice(0,5),
+          };
+        }
+      }
+
+      const colStats = {};
+      for (const h of headers) {
+        colStats[h] = analyzeColumn(columnData[h] || []);
+      }
+
+      return {
+        headers,
+        rows,
+        fullRowsCount,
+        totalRows: fullRowsCount,
+        colStats,
+        columnData,
+      };
+    }
+
+    // generate TXT content (identical style to python script)
+    function generateTxtContent(headers, rows, totalRows, maxRows, colStats, delimiter, filename) {
+      const now = new Date().toISOString().replace('T', ' ').slice(0, 19);
+      const shownRows = rows.length;
+      const lines = [];
+      const w = (line='') => lines.push(line);
+
+      w('=' .repeat(70));
+      w('  CSV DATA FILE - CONVERTED FOR AI ANALYSIS');
+      w('=' .repeat(70));
+      w(`  Source File   : ${filename}`);
+      w(`  Converted On  : ${now}`);
+      w(`  Total Rows    : ${totalRows.toLocaleString()}`);
+      w(`  Rows Included : ${shownRows.toLocaleString()} ${totalRows <= maxRows ? '(ALL)' : `(of ${totalRows.toLocaleString()} — truncated)`}`);
+      w(`  Columns       : ${headers.length}`);
+      w(`  Delimiter     : '${delimiter}'`);
+      w('=' .repeat(70));
+      w('');
+
+      w('COLUMNS');
+      w('-' .repeat(70));
+      headers.forEach((h, i) => {
+        w(`  [${String(i+1).padStart(2,'0')}] ${h}`);
+      });
+      w('');
+
+      // column statistics
+      w('COLUMN STATISTICS');
+      w('-' .repeat(70));
+      for (const h of headers) {
+        const st = colStats[h];
+        w(`  ▸ ${h}`);
+        if (st.type === 'numeric') {
+          w(`      Type    : Numeric`);
+          w(`      Count   : ${st.count.toLocaleString()}`);
+          w(`      Min     : ${st.min}`);
+          w(`      Max     : ${st.max}`);
+          w(`      Mean    : ${st.mean.toFixed(4)}`);
+          w(`      Median  : ${st.median.toFixed(4)}`);
+          if (st.nonNumeric > 0) w(`      Non-numeric entries: ${st.nonNumeric}`);
+        } else {
+          w(`      Type    : Text`);
+          w(`      Count   : ${st.count.toLocaleString()}`);
+          w(`      Unique  : ${st.uniqueCount.toLocaleString()}`);
+          const samples = st.sampleValues.map(v => String(v)).join(', ');
+          w(`      Samples : ${samples}`);
+        }
+        w('');
+      }
+
+      // DATA table
+      w('DATA');
+      w('-' .repeat(70));
+      // column widths
+      const colWidths = {};
+      for (const h of headers) {
+        let maxLen = h.length;
+        for (const row of rows) {
+          const val = String(row[h] || '');
+          if (val.length > maxLen) maxLen = val.length;
+        }
+        colWidths[h] = Math.min(maxLen + 2, 22);
+      }
+
+      let headerLine = '  ' + headers.map(h => h.padEnd(colWidths[h])).join(' | ');
+      w(headerLine);
+      w('  ' + '-'.repeat(headerLine.length - 2));
+
+      for (const row of rows) {
+        const line = '  ' + headers.map(h => {
+          let val = String(row[h] || '');
+          return val.padEnd(colWidths[h]).slice(0, colWidths[h]);
+        }).join(' | ');
+        w(line);
+      }
+
+      if (totalRows > maxRows) {
+        w('');
+        w(`  ... [${(totalRows - maxRows).toLocaleString()} additional rows not shown]`);
+        w(`  ... Increase max_rows parameter to include more data.`);
+      }
+      w('');
+      w('=' .repeat(70));
+      w('  END OF FILE');
+      w('=' .repeat(70));
+
+      return lines.join('\n');
+    }
+
+    // main conversion
+    function performConversion() {
+      if (!currentFile) {
+        alert('Please select a CSV file first.');
+        return;
+      }
+
+      const maxRows = parseInt(maxRowsInput.value, 10) || 500;
+      const delimiter = delimiterInput.value || ',';
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const text = e.target.result;
+          const parsed = parseCSV(text, delimiter, maxRows);
+          const { headers, rows, totalRows, colStats } = parsed;
+          const shownRows = rows.length;
+
+          // generate TXT
+          const txt = generateTxtContent(headers, rows, totalRows, maxRows, colStats, delimiter, currentFile.name);
+
+          // store for download
+          currentTxtContent = txt;
+          currentStats = { totalRows, totalCols: headers.length, shownRows };
+
+          // preview
+          previewBox.textContent = txt.slice(0, 6000) + (txt.length > 6000 ? '\n… (preview truncated)' : '');
+          // stats
+          statRows.textContent = totalRows.toLocaleString();
+          statCols.textContent = headers.length;
+          statTruncated.textContent = shownRows.toLocaleString() + (totalRows > shownRows ? ` of ${totalRows.toLocaleString()}` : '');
+          statsSummary.style.display = 'flex';
+          downloadBtn.disabled = false;
+          previewLimitLabel.textContent = maxRows;
+          document.getElementById('previewBadge').textContent = `TXT · ${shownRows} rows`;
+
+        } catch (err) {
+          alert('Conversion error: ' + err.message);
+          console.error(err);
+        }
+      };
+      reader.onerror = () => alert('Failed to read file.');
+      reader.readAsText(currentFile);
+    }
+
+    // download
+    function downloadTxt() {
+      if (!currentTxtContent) {
+        alert('No converted content. Please convert first.');
+        return;
+      }
+      const blob = new Blob([currentTxtContent], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      let baseName = currentFile ? currentFile.name.replace(/\.csv$/i, '') : 'output';
+      a.download = `${baseName}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    // --- event listeners ---
+    // upload area
+    uploadArea.addEventListener('click', () => fileInput.click());
+    uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.style.borderColor = '#1f3a7a'; });
+    uploadArea.addEventListener('dragleave', () => { uploadArea.style.borderColor = '#cbd9ed'; });
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.style.borderColor = '#cbd9ed';
+      if (e.dataTransfer.files.length > 0) {
+        const file = e.dataTransfer.files[0];
+        if (file.type === 'text/csv' || file.name.endsWith('.csv')) {
+          currentFile = file;
+          updateFileStatus(file);
+          resetBtn.click(); // clear preview but keep file
+        } else {
+          alert('Please drop a CSV file.');
+        }
+      }
+    });
+
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        if (file.type === 'text/csv' || file.name.endsWith('.csv')) {
+          currentFile = file;
+          updateFileStatus(file);
+        } else {
+          alert('Please select a CSV file.');
+          fileInput.value = '';
+        }
+      }
+    });
+
+    function updateFileStatus(file) {
+      fileNameSpan.textContent = file.name;
+      fileSizeSpan.textContent = formatFileSize(file.size);
+      fileStatus.style.display = 'flex';
+    }
+
+    convertBtn.addEventListener('click', performConversion);
+
+    resetBtn.addEventListener('click', () => {
+      resetAll();
+      // also clear file status
+      fileInput.value = '';
+      fileStatus.style.display = 'none';
+      currentFile = null;
+      currentTxtContent = '';
+      statsSummary.style.display = 'none';
+      downloadBtn.disabled = true;
+      previewBox.innerHTML = `<span class="placeholder">⏺ Upload a CSV and click <strong>Convert</strong> to see the formatted TXT preview.</span>`;
+      document.getElementById('previewBadge').textContent = 'TXT';
+    });
+
+    downloadBtn.addEventListener('click', downloadTxt);
+
+    // update label
+    maxRowsInput.addEventListener('input', () => {
+      const val = parseInt(maxRowsInput.value, 10) || 500;
+      previewLimitLabel.textContent = val;
+    });
+
+    // initial reset
+    resetAll();
+  })();
+</script>
+</body>
+</html>
